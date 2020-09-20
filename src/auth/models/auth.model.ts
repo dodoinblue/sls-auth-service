@@ -1,5 +1,5 @@
-import { BaseModel } from 'src/db';
-import { generateNanoId } from 'src/utils/nanoids';
+import { BaseModel } from '../../db';
+import { generateNanoId } from '../../utils/nanoids';
 
 export class AuthModel extends BaseModel {
   id: string;

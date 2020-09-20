@@ -1,13 +1,17 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dtos/login.dto';
-import { LoginResponse } from './auth.responses';
+import { LoginResponse, RegistrationResponse } from './auth.responses';
 import { RegisterDto } from './dtos/register.dto';
-import { AuthModel } from './auth.model';
+import { AuthModel } from './models/auth.model';
+import { AuthService } from './auth.service';
+import { RefreshDto } from './dtos/refresh.dto';
 
 @Controller()
 @ApiTags('Auth')
 export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
   @Post('/login')
   @ApiOperation({ summary: 'Login' })
   @ApiResponse({
@@ -16,15 +20,10 @@ export class AuthController {
       'Login response with accessToken and other basic account info.',
   })
   async login(@Body() loginDto: LoginDto): Promise<LoginResponse> {
-    const account = await AuthModel.query().findOne({
-      username: loginDto.username,
-    })
-
-    return {
-      ...account,
-      accessToken: 'tokenA',
-      refreshToken: 'tokenR',
-    };
+    return await this.authService.loginWithUsernamePassword(
+      loginDto.username,
+      loginDto.password,
+    );
   }
 
   @Post('/register')
@@ -33,14 +32,26 @@ export class AuthController {
     status: 200,
     description: 'Create an account',
   })
-  async register(@Body() registerDto: RegisterDto): Promise<LoginResponse> {
-    const account = await AuthModel.query().insert(registerDto);
+  async register(
+    @Body() registerDto: RegisterDto,
+  ): Promise<RegistrationResponse> {
+    return await this.authService.createAccount(
+      registerDto.username,
+      registerDto.password,
+    );
+  }
 
-    return {
-      ...account.toJSON(),
-      accessToken: 'tokenA',
-      refreshToken: 'tokenR',
-    };
+  @Post('/refresh')
+  @ApiOperation({ summary: 'Create an account' })
+  @ApiResponse({
+    status: 200,
+    description: 'Create an account',
+  })
+  async refresh(@Body() refreshDto: RefreshDto): Promise<RegistrationResponse> {
+    return await this.authService.loginByRefreshToken(
+      refreshDto.refreshToken,
+      refreshDto.accountId,
+    );
   }
 
   // @Get(':id')
