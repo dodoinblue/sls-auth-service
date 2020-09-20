@@ -1,6 +1,7 @@
 service: star-super-auth
 plugins:
   - serverless-offline
+  - serverless-plugin-typescript
 
 provider:
   name: aws
@@ -15,7 +16,7 @@ custom:
 
 functions:
   auth:
-    handler: dist/lambda.handler
+    handler: src/lambda.handler
     events:
       - http:
           path: /{proxy+}
