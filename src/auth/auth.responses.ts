@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 
 export class LoginResponse {
   @ApiProperty({ example: 'Oa0kX9Xy5m60KtNlbxxIS', description: 'Id of the account' })
-  accountId: string;
+  id: string;
 
   @ApiProperty({ example: 'user123', description: 'Username associated wit the account' })
   username: string;

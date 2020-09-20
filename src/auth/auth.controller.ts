@@ -3,6 +3,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dtos/login.dto';
 import { LoginResponse } from './auth.responses';
 import { RegisterDto } from './dtos/register.dto';
+import { AuthModel } from './auth.model';
 
 @Controller()
 @ApiTags('Auth')
@@ -14,11 +15,13 @@ export class AuthController {
     description:
       'Login response with accessToken and other basic account info.',
   })
-  async login(@Body() createCatDto: LoginDto): Promise<LoginResponse> {
-    // return this.catsService.create(createCatDto);
+  async login(@Body() loginDto: LoginDto): Promise<LoginResponse> {
+    const account = await AuthModel.query().findOne({
+      username: loginDto.username,
+    })
+
     return {
-      accountId: '123',
-      username: 'name',
+      ...account,
       accessToken: 'tokenA',
       refreshToken: 'tokenR',
     };
@@ -28,14 +31,13 @@ export class AuthController {
   @ApiOperation({ summary: 'Create an account' })
   @ApiResponse({
     status: 200,
-    description:
-      'Create an account',
+    description: 'Create an account',
   })
-  async register(@Body() createCatDto: RegisterDto): Promise<LoginResponse> {
-    // return this.catsService.create(createCatDto);
+  async register(@Body() registerDto: RegisterDto): Promise<LoginResponse> {
+    const account = await AuthModel.query().insert(registerDto);
+
     return {
-      accountId: '123',
-      username: 'name',
+      ...account.toJSON(),
       accessToken: 'tokenA',
       refreshToken: 'tokenR',
     };
