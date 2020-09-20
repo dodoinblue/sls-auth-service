@@ -1,0 +1,23 @@
+service: star-super-auth
+plugins:
+  - serverless-offline
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: us-west-2
+  memorySize: 256
+  timeout: 10
+
+custom:
+  stage: ${opt:stage, self:provider.stage}
+  region: ${opt:region, self:provider.region}
+
+functions:
+  auth:
+    handler: dist/lambda.handler
+    events:
+      - http:
+          path: /{proxy+}
+          method: any
+          cors: true
