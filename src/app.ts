@@ -4,10 +4,6 @@ import express from 'express';
 import { ExpressAdapter } from '@nestjs/platform-express';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { Model } from 'objection';
-import { knex } from './db';
-
-Model.knex(knex);
 
 export async function createApp() {
   const expressApp = express();

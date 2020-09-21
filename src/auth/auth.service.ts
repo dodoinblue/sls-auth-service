@@ -1,24 +1,32 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { RefreshTokenModel } from './models/refresh.model';
+import { RefreshTokenModel } from '../database/models/refresh.model';
+import { AuthModel } from '../database/models/auth.model';
 import CryptoJS, { AES } from 'crypto-js';
 import bcrypt from 'bcryptjs';
-import { AuthModel } from './models/auth.model';
 import jwt from 'jsonwebtoken';
 import { LoginResponse } from './auth.responses';
-import { UniqueViolationError } from 'objection';
+import { ModelClass, UniqueViolationError } from 'objection';
 
 const secret = process.env.JWT_SECRET;
 const expiresIn = 2 * 60 * 60;
 
 @Injectable()
 export class AuthService {
+  constructor(
+    @Inject('AuthModel') private AuthModel: ModelClass<AuthModel>,
+    @Inject('RefreshTokenModel')
+    private RefreshTokenModel: ModelClass<RefreshTokenModel>,
+  ) {}
+
   private async createRefreshToken(accountId: string) {
-    const token = await RefreshTokenModel.query().insert({
+    const token = await this.RefreshTokenModel.query().insert({
+      // TODO: add session info for logout API.
       accountId,
       expire: Math.floor(Date.now() / 1000) + 90 * 24 * 3600,
       createdBy: accountId,
@@ -44,7 +52,7 @@ export class AuthService {
   }
 
   async loginWithUsernamePassword(username: string, password: string) {
-    const account = await AuthModel.query().findOne({ username });
+    const account = await this.AuthModel.query().findOne({ username });
     if (!account) {
       throw new UnauthorizedException('Unauthorized', 'User does not exist');
     }
@@ -73,7 +81,7 @@ export class AuthService {
       process.env.REFRESH_TOKEN_ENCRYPT_SECRET,
     ).toString(CryptoJS.enc.Utf8);
 
-    const token = await RefreshTokenModel.query()
+    const token = await this.RefreshTokenModel.query()
       .select('refreshTokens.*', 'username', 'nickname', 'countryCode')
       .joinRelated('account')
       .findById(decrypted);
@@ -82,7 +90,7 @@ export class AuthService {
     } else if (Math.floor(Date.now() / 1000) > token.expire) {
       throw new UnauthorizedException('RefreshToken expired');
     } else if (token.accountId === accountId) {
-      await RefreshTokenModel.query().patchAndFetchById(decrypted, {
+      await this.RefreshTokenModel.query().patchAndFetchById(decrypted, {
         deleted: true,
       });
       const newToken = await this.createRefreshToken(accountId);
@@ -105,7 +113,7 @@ export class AuthService {
   async createAccount(username: string, password: string) {
     try {
       const hash = await bcrypt.hash(password, 10);
-      const account = await AuthModel.query().insert({
+      const account = await this.AuthModel.query().insert({
         username,
         password: hash,
       });

@@ -1,5 +1,5 @@
-import { BaseModel } from '../../db';
 import { generateNanoId } from '../../utils/nanoids';
+import { BaseModel } from '../base.model';
 
 export class AuthModel extends BaseModel {
   id: string;
@@ -24,21 +24,5 @@ export class AuthModel extends BaseModel {
 
   static get jsonAttributes() {
     return ['roles'];
-  }
-
-  static get jsonSchema() {
-    return {
-      type: 'object',
-      required: ['username', 'password'],
-
-      properties: {
-        id: { type: 'string' },
-        username: { type: ['string'] },
-        password: { type: 'string', minLength: 1, maxLength: 255 },
-        roles: {
-          type: 'array',
-        },
-      },
-    };
   }
 }

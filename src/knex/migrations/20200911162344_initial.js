@@ -1,4 +1,4 @@
-const { applyCommonAttributes } = require('../util');
+const { applyCommonAttributes } = require('../util'); // eslint-disable-line
 
 exports.up = function (knex) {
   return Promise.all([

@@ -3,7 +3,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dtos/login.dto';
 import { LoginResponse, RegistrationResponse } from './auth.responses';
 import { RegisterDto } from './dtos/register.dto';
-import { AuthModel } from './models/auth.model';
+import { AuthModel } from '../database/models/auth.model';
 import { AuthService } from './auth.service';
 import { RefreshDto } from './dtos/refresh.dto';
 
@@ -52,6 +52,16 @@ export class AuthController {
       refreshDto.refreshToken,
       refreshDto.accountId,
     );
+  }
+
+  @Post('/logout')
+  @ApiOperation({ summary: 'Logout current session.' })
+  @ApiResponse({
+    status: 200,
+    description: 'Success',
+  })
+  async logout() {
+    return { message: 'OK' };
   }
 
   // @Get(':id')

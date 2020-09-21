@@ -1,6 +1,6 @@
 import { Model } from 'objection';
 import { generateLongNanoId } from '../../utils/nanoids';
-import { BaseModel } from '../../db';
+import { BaseModel } from '../base.model';
 
 export class RefreshTokenModel extends BaseModel {
   id: string;

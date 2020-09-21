@@ -1,8 +1,3 @@
-import Knex from 'knex';
-const dbConfig = require('./knex/knexfile'); // eslint-disable-line
-
-export const knex = Knex(dbConfig);
-
 import { Model } from 'objection';
 
 export class BaseModel extends Model {
