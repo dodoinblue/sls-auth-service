@@ -35,7 +35,8 @@ describe('AuthController', () => {
         await authController.login({ username: 'name', password: 'pwd' }),
       ).toBe(result);
 
-      expect(myMock.mock.calls[0]).toEqual(['name', 'pwd']);
+      // expect(myMock.mock.calls[0]).toEqual(['name', 'pwd']);
+      expect(myMock).toHaveBeenCalledWith('name', 'pwd')
     });
   });
 });
