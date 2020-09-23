@@ -4,6 +4,7 @@ import { BaseModel } from '../base.model';
 
 export class RefreshTokenModel extends BaseModel {
   id: string;
+  sessionId: string;
   accountId: string;
   expire: number;
 

@@ -12,6 +12,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { LoginResponse } from './auth.responses';
 import { ModelClass, UniqueViolationError } from 'objection';
+import { generateNanoId } from '../utils/nanoids';
 
 const secret = process.env.JWT_SECRET;
 const expiresIn = 2 * 60 * 60;
@@ -24,9 +25,9 @@ export class AuthService {
     private RefreshTokenModel: ModelClass<RefreshTokenModel>,
   ) {}
 
-  private async createRefreshToken(accountId: string) {
+  private async createRefreshToken(accountId: string, sessionId: string) {
     const token = await this.RefreshTokenModel.query().insert({
-      // TODO: add session info for logout API.
+      sessionId,
       accountId,
       expire: Math.floor(Date.now() / 1000) + 90 * 24 * 3600,
       createdBy: accountId,
@@ -38,14 +39,14 @@ export class AuthService {
     ).toString();
   }
 
-  private createAccessToken(account: any, roles?) {
+  private createAccessToken(account: any) {
     const payload: any = {
       universe: account.universe,
       sub: account.id,
       username: account.username,
     };
-    if (roles) {
-      payload.roles = roles;
+    if (account.roles && Array.isArray(account.roles)) {
+      payload.roles = account.roles.join(',');
     }
     const expire = Math.floor(Date.now() / 1000) + expiresIn;
     return [jwt.sign(payload, secret, { expiresIn: expiresIn }), expire];
@@ -57,15 +58,14 @@ export class AuthService {
       throw new UnauthorizedException('Unauthorized', 'User does not exist');
     }
     if (await bcrypt.compare(password, account.password)) {
-      const refreshToken = await this.createRefreshToken(account.id);
-      const [accessToken, expire] = this.createAccessToken(
-        account,
-        account.roles.join(','),
-      );
+      const sessionId = generateNanoId();
+      const refreshToken = await this.createRefreshToken(account.id, sessionId);
+      const [accessToken, expire] = this.createAccessToken(account);
       return {
         accessToken,
         refreshToken,
         expire,
+        sessionId,
         id: account.id,
         username: account.username,
         roles: account.roles.join(','),
@@ -93,15 +93,16 @@ export class AuthService {
       await this.RefreshTokenModel.query().patchAndFetchById(decrypted, {
         deleted: true,
       });
-      const newToken = await this.createRefreshToken(accountId);
-      const [accessToken, expire] = this.createAccessToken(
-        token,
-        (token as any).roles ? (token as any).roles.join(',') : '',
+      const newToken = await this.createRefreshToken(
+        accountId,
+        token.sessionId,
       );
+      const [accessToken, expire] = this.createAccessToken(token);
       return {
         accessToken,
         refreshToken: newToken,
         expire,
+        sessionId: token.sessionId,
         id: token.accountId,
         username: (token as any).username,
       };
@@ -129,5 +130,18 @@ export class AuthService {
         throw new InternalServerErrorException('Unexpected error');
       }
     }
+  }
+
+  async logoutSession(sessionId: string) {
+    const logoutResult = await this.RefreshTokenModel.query()
+      .where({ sessionId })
+      .andWhere('deleted', '!=', true)
+      .patch({ deleted: true });
+      if (logoutResult > 0) {
+        return { message: 'OK' };
+      } else {
+        // TODO: Create a config to disable this error.
+        throw new BadRequestException('Bad request', 'Session not found.');
+      }
   }
 }

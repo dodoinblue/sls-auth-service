@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Param, Post } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dtos/login.dto';
 import { LoginResponse, RegistrationResponse } from './auth.responses';
@@ -53,14 +53,15 @@ export class AuthController {
     );
   }
 
-  @Post('/logout')
+  @Post('/logout/sessions/:sessionId')
   @ApiOperation({ summary: 'Logout current session.' })
+  @HttpCode(200)
   @ApiResponse({
     status: 200,
     description: 'Success',
   })
-  async logout() {
-    return { message: 'OK' };
+  async logout(@Param('sessionId') sessionId: string) {
+    return this.authService.logoutSession(sessionId);
   }
 
   // @Get(':id')
