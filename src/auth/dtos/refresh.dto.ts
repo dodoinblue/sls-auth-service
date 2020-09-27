@@ -1,16 +1,16 @@
+import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
-import { JSONSchema } from 'class-validator-jsonschema';
 
 export class RefreshDto {
   @IsString()
-  @JSONSchema({
+  @ApiProperty({
     description: 'Refresh token',
     example: 'U2FsdGVkX18y3deX+u207ozatIMs5/2cND7xofUDpWo=',
   })
   refreshToken: string;
 
   @IsString()
-  @JSONSchema({
+  @ApiProperty({
     description: 'Account ID',
     example: 'SevT6XsaLJ35C9PUMxbCy',
   })

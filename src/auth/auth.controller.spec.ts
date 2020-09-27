@@ -19,7 +19,7 @@ describe('AuthController', () => {
   });
 
   describe('login', () => {
-    it('should return an array of cats', async () => {
+    it('should return tokens if login is successful', async () => {
       const result = {
         accessToken: 'token',
         refreshToken: 'rToken',

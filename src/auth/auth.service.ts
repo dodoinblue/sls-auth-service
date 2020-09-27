@@ -11,10 +11,13 @@ import CryptoJS, { AES } from 'crypto-js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { LoginResponse, RegistrationResponse } from './auth.responses';
-import { ModelClass, UniqueViolationError } from 'objection';
-import { generateNanoId } from '../utils/nanoids';
+import { ModelClass, raw, UniqueViolationError } from 'objection';
+import { generateNanoId, generateNumbers } from '../utils/nanoids';
 import { RegisterDto } from './dtos/register.dto';
 import { whiteListObjectProperty } from '../utils/object-filters';
+import { OkResponse } from '../common/ok.responses';
+import moment from 'moment';
+import { ResetPasswordDto } from './dtos/reset-password.dto';
 
 const secret = process.env.JWT_SECRET;
 const expiresIn = 2 * 60 * 60;
@@ -147,6 +150,57 @@ export class AuthService {
     } else {
       // TODO: Create a config to disable this error.
       throw new BadRequestException('Bad request', 'Session not found.');
+    }
+  }
+
+  async requestPasswordResetEmail(email: string) {
+    // Set code
+    const account = await this.AuthModel.query().findOne({
+      email: email,
+      deleted: false,
+    });
+    if (account) {
+      const code = generateNumbers();
+      // TODO: send email async
+      // sendPasswordRecoveryCodeEmail(code);
+      await account.$query().patchAndFetch({
+        recoveryCode: code,
+        recoveryExpire: moment()
+          .add(10, 'minutes')
+          .toDate(),
+      });
+      return new OkResponse();
+    } else {
+      throw new BadRequestException('');
+    }
+  }
+
+  async resetPasswordWithCode(resetRequest: ResetPasswordDto) {
+    const { email, code, password } = resetRequest;
+    const account = await this.AuthModel.query().findOne({
+      email,
+      deleted: false,
+    });
+    if (
+      account &&
+      account.recoveryCode !== null &&
+      account.recoveryCode === code &&
+      moment().isBefore(moment(account.recoveryExpire))
+    ) {
+      console.log('im here');
+      const hash = await bcrypt.hash(password, 10);
+      await account
+        .$query()
+        .patchAndFetch({
+          password: hash,
+          recoveryCode: raw('NULL'),
+          recoveryExpire: raw('NULL'),
+        });
+      return new OkResponse();
+    } else {
+      throw new BadRequestException(
+        'Password recovery code is incorrect or expired',
+      );
     }
   }
 }

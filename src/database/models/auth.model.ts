@@ -8,6 +8,8 @@ export class AuthModel extends BaseModel {
   email: string;
   phone: string;
   roles: string[];
+  recoveryCode: string;
+  recoveryExpire: Date;
 
   $beforeInsert(context) {
     super.$beforeInsert(context);
