@@ -12,6 +12,16 @@ export class RegistrationResponse {
     description: 'Username associated wit the account',
   })
   username: string;
+
+  @ApiProperty({
+    example: 'email@sample.com',
+  })
+  readonly email?: string;
+
+  @ApiProperty({
+    example: '+8613911111111',
+  })
+  readonly phone?: string;
 }
 
 export class LoginResponse extends RegistrationResponse {

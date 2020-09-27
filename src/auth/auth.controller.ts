@@ -1,10 +1,19 @@
-import { Body, Controller, HttpCode, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dtos/login.dto';
 import { LoginResponse, RegistrationResponse } from './auth.responses';
 import { RegisterDto } from './dtos/register.dto';
 import { AuthService } from './auth.service';
 import { RefreshDto } from './dtos/refresh.dto';
+import { AuthGuard } from '../guards/auth.guard';
 
 @Controller()
 @ApiTags('Auth')
@@ -34,10 +43,7 @@ export class AuthController {
   async register(
     @Body() registerDto: RegisterDto,
   ): Promise<RegistrationResponse> {
-    return await this.authService.createAccount(
-      registerDto.username,
-      registerDto.password,
-    );
+    return await this.authService.createAccount(registerDto);
   }
 
   @Post('/refresh')
@@ -60,8 +66,10 @@ export class AuthController {
     status: 200,
     description: 'Success',
   })
-  async logout(@Param('sessionId') sessionId: string) {
-    return this.authService.logoutSession(sessionId);
+  @UseGuards(AuthGuard)
+  async logout(@Param('sessionId') sessionId: string, @Req() req: any) {
+    console.log('logout');
+    return this.authService.logoutSession(sessionId, req.custom.accountId);
   }
 
   // @Get(':id')

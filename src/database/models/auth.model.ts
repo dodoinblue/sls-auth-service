@@ -5,6 +5,8 @@ export class AuthModel extends BaseModel {
   id: string;
   username: string;
   password: string;
+  email: string;
+  phone: string;
   roles: string[];
 
   $beforeInsert(context) {
@@ -25,4 +27,14 @@ export class AuthModel extends BaseModel {
   static get jsonAttributes() {
     return ['roles'];
   }
+
+  static modifiers = {
+    authAllSelects(query) {
+      query.select('id', 'username', 'password', 'email', 'phone', 'roles');
+    },
+
+    authSafeSelects(query) {
+      query.select('id', 'username', 'email', 'phone', 'roles');
+    },
+  };
 }

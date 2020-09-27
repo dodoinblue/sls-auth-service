@@ -10,9 +10,11 @@ import { AuthModel } from '../database/models/auth.model';
 import CryptoJS, { AES } from 'crypto-js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { LoginResponse } from './auth.responses';
+import { LoginResponse, RegistrationResponse } from './auth.responses';
 import { ModelClass, UniqueViolationError } from 'objection';
 import { generateNanoId } from '../utils/nanoids';
+import { RegisterDto } from './dtos/register.dto';
+import { whiteListObjectProperty } from '../utils/object-filters';
 
 const secret = process.env.JWT_SECRET;
 const expiresIn = 2 * 60 * 60;
@@ -111,17 +113,20 @@ export class AuthService {
     }
   }
 
-  async createAccount(username: string, password: string) {
+  async createAccount(param: RegisterDto) {
     try {
-      const hash = await bcrypt.hash(password, 10);
+      const hash = await bcrypt.hash(param.password, 10);
       const account = await this.AuthModel.query().insert({
-        username,
+        ...param,
         password: hash,
       });
-      return {
-        id: account.id,
-        username: account.username,
-      };
+      return whiteListObjectProperty(account, [
+        'id',
+        'username',
+        'email',
+        'phone',
+        'roles',
+      ]) as RegistrationResponse;
     } catch (error) {
       if (error instanceof UniqueViolationError) {
         throw new BadRequestException('Bad request', 'username is taken');
@@ -132,16 +137,16 @@ export class AuthService {
     }
   }
 
-  async logoutSession(sessionId: string) {
+  async logoutSession(sessionId: string, accountId: string) {
     const logoutResult = await this.RefreshTokenModel.query()
-      .where({ sessionId })
+      .where({ sessionId, accountId })
       .andWhere('deleted', '!=', true)
       .patch({ deleted: true });
-      if (logoutResult > 0) {
-        return { message: 'OK' };
-      } else {
-        // TODO: Create a config to disable this error.
-        throw new BadRequestException('Bad request', 'Session not found.');
-      }
+    if (logoutResult > 0) {
+      return { message: 'OK' };
+    } else {
+      // TODO: Create a config to disable this error.
+      throw new BadRequestException('Bad request', 'Session not found.');
+    }
   }
 }

@@ -1,4 +1,6 @@
-export function whiteListObjectProperty(obj, whiteList, removeNull = false) {
+import { Model } from "objection";
+
+export function whiteListObjectProperty<T extends Model>(obj: T, whiteList: string[], removeNull = false): Partial<T> {
   const trimmed = {};
   whiteList.forEach((key) => {
     if (obj.hasOwnProperty(key)) {
@@ -13,7 +15,7 @@ export function whiteListObjectProperty(obj, whiteList, removeNull = false) {
   return trimmed;
 }
 
-export function blackListObjectProperty(obj, blackList, removeNull = false) {
+export function blackListObjectProperty(obj, blackList: string[], removeNull = false) {
   const ret = Object.assign({}, obj);
   blackList.forEach((key) => {
     delete ret[key];
