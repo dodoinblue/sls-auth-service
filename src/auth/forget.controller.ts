@@ -41,7 +41,7 @@ export class ForgetController {
   }
 
   @Post('/verify')
-  @ApiOperation({ summary: 'Request password reset code' })
+  @ApiOperation({ summary: 'Reset password with code' })
   @ApiResponse({
     status: 200,
     description:

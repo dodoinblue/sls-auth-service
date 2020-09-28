@@ -48,6 +48,10 @@ export class AuthModel extends BaseModel {
       query.select('id', 'username', 'email', 'phone', 'roles');
     },
 
+    rolesSelects(query) {
+      query.select('roles');
+    },
+
     accountInfoSelects(query) {
       query.select(
         'id',

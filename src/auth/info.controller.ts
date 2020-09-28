@@ -6,12 +6,12 @@ import { AccountInfoResponse } from './auth.responses';
 import { AuthService } from './auth.service';
 import { UpdateAccountDto } from './dtos/update-account.dto';
 
-@Controller('info')
+@Controller()
 @ApiTags('Account Info')
 export class InfoController {
   constructor(private readonly authService: AuthService) {}
 
-  @Get()
+  @Get('accounts/my')
   @ApiOperation({ summary: 'Get account info' })
   @ApiResponse({
     status: 200,
@@ -24,7 +24,7 @@ export class InfoController {
     return await this.authService.getAccountInfo(accountId);
   }
 
-  @Post()
+  @Post('accounts/my')
   @ApiOperation({ summary: 'Update account info' })
   @ApiResponse({
     status: 200,

@@ -241,4 +241,48 @@ export class AuthService {
       'postalCode',
     ]);
   }
+
+  async getRoles(accountId: string) {
+    return await this.AuthModel.query()
+      .findById(accountId)
+      .modify('rolesSelects');
+  }
+
+  async addRoles(accountId: string, roles: string[], replaceAll = false) {
+    if (replaceAll) {
+      const account = await this.AuthModel.query().patchAndFetchById(
+        accountId,
+        {
+          roles: roles,
+        },
+      );
+      // TODO: not found?
+      return account.roles;
+    } else {
+      const account = await this.AuthModel.query().findById(accountId);
+      if (!account) {
+        throw new BadRequestException('Account not found');
+      }
+      roles.forEach(role => {
+        if (!account.roles.includes(role)) {
+          account.roles.push(role);
+        }
+      });
+      const updated = await account
+        .$query()
+        .patchAndFetch({ roles: account.roles });
+      return updated.roles;
+    }
+  }
+
+  async removeRoles(accountId: string, roles: string[]) {
+    const account = await this.AuthModel.query().findById(accountId);
+    if (!account) {
+      throw new BadRequestException('Account not found');
+    }
+    const newRoles = account.roles.filter(role => !roles.includes(role));
+
+    const updated = await account.$query().patchAndFetch({ roles: newRoles });
+    return updated.roles;
+  }
 }
