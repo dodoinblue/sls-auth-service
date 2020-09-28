@@ -38,3 +38,50 @@ export class LoginResponse extends RegistrationResponse {
   })
   refreshToken: string;
 }
+
+export class AccountInfoResponse extends RegistrationResponse {
+  @ApiProperty({
+    example: 'n1ckname',
+  })
+  nickname: string;
+
+  @ApiProperty({
+    example: 'John',
+  })
+  firstName: string;
+
+  @ApiProperty({
+    example: 'Doe',
+  })
+  lastName: string;
+
+  @ApiProperty({
+    example: 'https://cnd.example.com/link-to-proile.png',
+  })
+  avatar: string;
+
+  @ApiProperty({
+    example: 'Canada',
+  })
+  country: string;
+
+  @ApiProperty({
+    example: 'British Columbia',
+  })
+  province: string;
+
+  @ApiProperty({
+    example: 'Vancouver',
+  })
+  city: string;
+
+  @ApiProperty({
+    example: '510 Seymour Street',
+  })
+  address: string;
+
+  @ApiProperty({
+    example: 'ABA BAB',
+  })
+  postalCode: string;
+}

@@ -10,6 +10,15 @@ export class AuthModel extends BaseModel {
   roles: string[];
   recoveryCode: string;
   recoveryExpire: Date;
+  nickname: string;
+  firstName: string;
+  lastName: string;
+  avatar: string;
+  country: string;
+  province: string;
+  city: string;
+  address: string;
+  postalCode: string;
 
   $beforeInsert(context) {
     super.$beforeInsert(context);
@@ -37,6 +46,26 @@ export class AuthModel extends BaseModel {
 
     authSafeSelects(query) {
       query.select('id', 'username', 'email', 'phone', 'roles');
+    },
+
+    accountInfoSelects(query) {
+      query.select(
+        'id',
+        'username',
+        'email',
+        'phone',
+        'roles',
+        'countryCode',
+        'nickname',
+        'firstName',
+        'lastName',
+        'avatar',
+        'country',
+        'province',
+        'city',
+        'address',
+        'postalCode',
+      );
     },
   };
 }

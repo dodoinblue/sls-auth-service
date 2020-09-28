@@ -5,13 +5,14 @@ import {
   InternalServerErrorException,
   Post,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { OkResponse } from '../common/ok.responses';
 import { AuthService } from './auth.service';
 import { ForgetCodeDto } from './dtos/forget-code.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
 
 @Controller('forget')
+@ApiTags('Auth', 'Forget Password')
 export class ForgetController {
   constructor(private readonly authService: AuthService) {}
 

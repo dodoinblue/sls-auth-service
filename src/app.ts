@@ -21,7 +21,7 @@ export async function createApp() {
     .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(nestApp, options);
-  SwaggerModule.setup('api', nestApp, document);
+  SwaggerModule.setup('/auth/docs/v1', nestApp, document);
 
   nestApp.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 

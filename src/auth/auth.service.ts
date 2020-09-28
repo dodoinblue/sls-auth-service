@@ -3,6 +3,7 @@ import {
   Inject,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { RefreshTokenModel } from '../database/models/refresh.model';
@@ -18,6 +19,7 @@ import { whiteListObjectProperty } from '../utils/object-filters';
 import { OkResponse } from '../common/ok.responses';
 import moment from 'moment';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
+import { UpdateAccountDto } from './dtos/update-account.dto';
 
 const secret = process.env.JWT_SECRET;
 const expiresIn = 2 * 60 * 60;
@@ -189,18 +191,54 @@ export class AuthService {
     ) {
       console.log('im here');
       const hash = await bcrypt.hash(password, 10);
-      await account
-        .$query()
-        .patchAndFetch({
-          password: hash,
-          recoveryCode: raw('NULL'),
-          recoveryExpire: raw('NULL'),
-        });
+      await account.$query().patchAndFetch({
+        password: hash,
+        recoveryCode: raw('NULL'),
+        recoveryExpire: raw('NULL'),
+      });
       return new OkResponse();
     } else {
       throw new BadRequestException(
         'Password recovery code is incorrect or expired',
       );
     }
+  }
+
+  async getAccountInfo(accountId) {
+    const account = await this.AuthModel.query()
+      .findOne({ id: accountId, deleted: false })
+      .modify('accountInfoSelects');
+    if (account) {
+      return account;
+    } else {
+      throw new NotFoundException('Account does not exist');
+    }
+  }
+
+  async updateAccountInfo(
+    accountId: string,
+    partialAccountInfo: UpdateAccountDto,
+  ) {
+    const updated = await this.AuthModel.query().patchAndFetchById(
+      accountId,
+      partialAccountInfo,
+    );
+    return whiteListObjectProperty(updated, [
+      'id',
+      'username',
+      'email',
+      'phone',
+      'roles',
+      'countryCode',
+      'nickname',
+      'firstName',
+      'lastName',
+      'avatar',
+      'country',
+      'province',
+      'city',
+      'address',
+      'postalCode',
+    ]);
   }
 }
